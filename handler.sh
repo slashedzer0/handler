@@ -102,6 +102,14 @@ scan_for_appimages() {
     echo ""
 }
 
+check_icon() {
+    if [ -n "$1" ] && [ -f "$1" ]; then
+        echo "$1"
+        return 0
+    fi
+    return 1
+}
+
 find_best_icon() {
     local tmp_root="$1"
     local safe_name="$2"
@@ -109,10 +117,7 @@ find_best_icon() {
 
     if [ -f "$tmp_root/.DirIcon" ]; then
         local target=$(readlink -f "$tmp_root/.DirIcon")
-        if [ -f "$target" ]; then
-            echo "$target"
-            return
-        fi
+        check_icon "$target" && return
     fi
 
     local desktop_file=$(find "$tmp_root" -maxdepth 2 -name "*.desktop" | head -n 1)
@@ -120,24 +125,15 @@ find_best_icon() {
         local icon_name=$(grep -E "^Icon=" "$desktop_file" | cut -d'=' -f2 | tr -d '[:space:]')
         if [ -n "$icon_name" ]; then
             ext_icon=$(find "$tmp_root" -name "${icon_name}.png" -o -name "${icon_name}.svg" | head -n 1)
-            if [ -n "$ext_icon" ] && [ -f "$ext_icon" ]; then
-                echo "$ext_icon"
-                return
-            fi
+            check_icon "$ext_icon" && return
         fi
     fi
 
     ext_icon=$(find "$tmp_root" -iname "*${safe_name}*.png" -o -iname "*${safe_name}*.svg" | head -n 1)
-    if [ -n "$ext_icon" ] && [ -f "$ext_icon" ]; then
-        echo "$ext_icon"
-        return
-    fi
+    check_icon "$ext_icon" && return
 
     ext_icon=$(find "$tmp_root" -type f \( -name "*.png" -o -name "*.svg" \) -exec du -b {} + | sort -n -r | head -n 1 | cut -f2)
-    if [ -n "$ext_icon" ] && [ -f "$ext_icon" ]; then
-        echo "$ext_icon"
-        return
-    fi
+    check_icon "$ext_icon" && return
 
     echo ""
 }

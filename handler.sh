@@ -72,6 +72,15 @@ setup_directories() {
     fi
 }
 
+update_desktop_database() {
+    echo "🔄 Updating desktop database..."
+    if command -v update-desktop-database &> /dev/null; then
+        update-desktop-database "$DESKTOP_DIR"
+    else
+        echo "⚠️ update-desktop-database not found. Restart your launcher to see changes."
+    fi
+}
+
 scan_for_appimages() {
     shopt -s nullglob
     local appimages=(*.AppImage *.appimage)
@@ -219,12 +228,7 @@ Categories=$app_category;
 Terminal=false
 EOF
 
-    echo "🔄 Updating desktop database..."
-    if command -v update-desktop-database &> /dev/null; then
-        update-desktop-database "$DESKTOP_DIR"
-    else
-        echo "⚠️ update-desktop-database not found. Restart your launcher to see changes."
-    fi
+    update_desktop_database
 
     echo ""
     read -p "🗑️ Do you want to delete the original file ($source_file)? [y/N]: " delete_orig
@@ -282,10 +286,7 @@ uninstall_application() {
     echo "🗑️ Removing AppImage..."
     rm -f "$target_app"
 
-    echo "🔄 Updating desktop database..."
-    if command -v update-desktop-database &> /dev/null; then
-        update-desktop-database "$DESKTOP_DIR"
-    fi
+    update_desktop_database
 
     echo "✅ Uninstallation complete."
 }
